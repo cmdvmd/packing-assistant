@@ -1,0 +1,62 @@
+<Bag>:
+    orientation: 'horizontal'
+    padding: 10
+    spacing: 10
+    size_hint_y: None
+    height: 50
+
+    # Display qr code
+    Image:
+        source: app.user_data_dir + '/' + root.qr + '.png'
+        size_hint_x: 0.2
+
+    # Display bag information
+    MDBoxLayout:
+        orientation: 'vertical'
+
+        # Display name of bag
+        MDLabel:
+            text: root.name
+            text_size: self.size
+            halign: 'left'
+            color: 0, 0, 0, 1
+
+        # Display description of bag
+        MDLabel:
+            text: root.description
+            text_size: self.size
+            font_size: 12
+            halign: 'left'
+            color: 0, 0, 0, 1
+
+<ScreenManager>:
+    BagsScreen:
+        name: 'bags'
+
+<BagsScreen>:
+    bag_list: bag_list
+
+    # Main layout
+    MDBoxLayout:
+        orientation: 'vertical'
+
+        # Toolbar with title and plus button
+        MDToolbar:
+            title: 'Packer'
+            right_action_items: [['plus', lambda button: root.new_bag()]]
+            elevation: 12
+
+        # Show available bags
+        ScrollView:
+            # Layout for available bags
+            MDGridLayout:
+                id: bag_list
+                cols: 1
+                spacing: 1
+                adaptive_height: True
+
+    # Button to scan qr code
+    MDFloatingActionButton:
+        icon: 'camera'
+        elevation_normal: 8
+        pos_hint: {'right': 0.95, 'top': 0.15}
