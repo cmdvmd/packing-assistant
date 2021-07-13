@@ -1,13 +1,96 @@
 #: import join os.path.join
+#: import ZBarCam kivy_garden.zbarcam.ZBarCam
+
+<Bar@MDToolbar>:
+    elevation: 12
+
+<QRCode>:
+    file_name: ''
+    source: join(app.user_data_dir, self.file_name + '.png')
+
+
+<Bag>:
+    focus_behavior: True
+    size_hint_y: None
+    height: item.height
+
+    # Show delete button
+    MDCardSwipeLayerBox:
+        canvas.before:
+            Color:
+                rgb: 1, 0, 0
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        # Delete button
+        MDIconButton:
+            icon: "delete"
+            theme_text_color: "Custom"
+            text_color: 1, 1, 1, 1
+            pos_hint: {"center_y": .5}
+            on_release: app.delete(root)
+
+    # Show bag information
+    MDCardSwipeFrontBox:
+        TwoLineAvatarIconListItem:
+            id: item
+            text: root.name
+            secondary_text: root.description
+            on_release: root.items()
+
+            ImageLeftWidget:
+                source: join(app.user_data_dir, str(root.id) + '.png')
+
+<Item>:
+    amount_field: amount_field
+
+    size_hint_y: None
+    height: 100
+    elevation: 15
+    padding: 10
+
+    # Show name of item
+    MDLabel:
+        text: root.name
+
+    # Show incrementing widget
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_x: 0.2
+
+        # Increment button
+        AnchorLayout:
+            MDIconButton:
+                icon: 'chevron-up'
+                pos_hint: {'center_x': 0.5}
+                on_release: app.increment(root.name, 1)
+
+        # Show current amount
+        TextInput:
+            id: amount_field
+            input_type: 'number'
+            cursor_color: 0.15, 0.6, 0.95, 1
+            text: str(root.amount)
+            width: self.height
+            on_focus: root.update(args[1])
+
+        # Decrement button
+        AnchorLayout:
+            MDIconButton:
+                icon: 'chevron-down'
+                pos_hint: {'center_x': 0.5}
+                on_release: app.increment(root.name, -1)
 
 <ScreenManager>:
     BagsScreen:
         name: 'bags'
+    ItemsScreen:
+        name: 'items'
     EditScreen:
         name: 'edit'
 
 <BagsScreen>:
-    bag_scroll: bag_scroll
     bag_list: bag_list
 
     # Main layout
@@ -15,27 +98,84 @@
         orientation: 'vertical'
 
         # Toolbar with title and plus button
-        MDToolbar:
+        Bar:
             title: 'Packer'
             right_action_items: [['plus', lambda x: root.new_bag()]]
-            elevation: 12
 
         # Show available bags
         ScrollView:
-            id: bag_scroll
-
             # Layout for available bags
-            MDGridLayout:
+            MDList:
                 id: bag_list
-                cols: 1
-                spacing: 1
-                adaptive_height: True
 
     # Button to scan qr code
     MDFloatingActionButton:
         icon: 'camera'
         elevation_normal: 8
         pos_hint: {'right': 0.95, 'top': 0.15}
+
+<ItemsScreen>:
+    item_field: item_field
+    item_list: item_list
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        # Toolbar with edit button and back button
+        Bar:
+            title: root.bag_name
+            left_action_items: [['arrow-left', lambda x: root.back()]]
+            right_action_items: [['pencil', lambda x: root.edit()]]
+
+        # Show bag info
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.3
+            spacing: 2
+            padding: 5
+
+            # Show QR code
+            QRCode:
+                file_name: str(root.bag_id)
+                size_hint_x: 0.5
+
+            # Show bag description
+            MDLabel:
+                text: root.bag_description
+                font_size: 14
+
+        MDSeparator:
+
+        # Show UI to add items to bag
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.25
+            spacing: 5
+            padding: 10
+
+            # Show input for new item
+            MDTextField:
+                id: item_field
+                hint_text: 'Item name'
+
+            # Add button
+            Button:
+                text: 'Add'
+                background_normal: ''
+                background_color: 0.15, 0.6, 0.95, 1
+                size_hint: 0.3, 0.6
+                pos_hint: {'center_y': 0.5}
+                on_release: root.new_item()
+
+        MDSeparator:
+
+        # Show items in current bag
+        ScrollView:
+            # Layout for items
+            MDList:
+                id: item_list
+                spacing: 2
 
 <EditScreen>:
     name_input: name_input
@@ -47,9 +187,8 @@
         spacing: 5
 
         # Toolbar with title and save button
-        MDToolbar:
-            title: root.bag_name
-            elevation: 12
+        Bar:
+            title: 'New Bag'
 
             # Save button
             MDTextButton:
@@ -59,14 +198,14 @@
                 on_release: root.save()
 
         # Show data
-        GridLayout:
-            cols: 1
+        BoxLayout:
+            orientation: 'vertical'
             spacing: 2
             padding: 15
 
             # Show QR code
             QRCode:
-                source: join(app.user_data_dir, root.bag_id + '.png')
+                file_name: str(root.bag_id)
                 size_hint_y: 0.5
 
             # Show input for bag name
@@ -75,10 +214,12 @@
                 hint_text: 'Name'
                 text: root.bag_name
                 required: True
+                multiline: False
 
             # Show input for bag description
             MDTextField:
                 id: description_input
                 hint_text: 'Description'
+                text: root.bag_description
                 multiline: True
                 size_hint_y: 0.5
