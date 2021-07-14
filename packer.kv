@@ -7,13 +7,26 @@
 <Bar@MDToolbar>:
     elevation: 12
 
+<ArrowButton@AnchorLayout>:
+    bag_name: ''
+    icon: ''
+    increment: 0
+
+    size_hint_y: 0.6
+    pos_hint: {'center_x': 0.5}
+
+    MDIconButton:
+        icon: root.icon
+        theme_text_color: 'Custom'
+        text_color: app.theme_cls.primary_color
+        on_release: app.increment(root.bag_name, root.increment)
+
 <QRCode>:
     file_name: ''
     source: join(app.user_data_dir, self.file_name + '.png')
 
 
 <Bag>:
-    focus_behavior: True
     size_hint_y: None
     height: item.height
 
@@ -28,11 +41,11 @@
 
         # Delete button
         MDIconButton:
-            icon: "delete"
-            theme_text_color: "Custom"
+            icon: 'delete'
+            theme_text_color: 'Custom'
             text_color: 1, 1, 1, 1
-            pos_hint: {"center_y": .5}
-            on_release: app.delete(root)
+            pos_hint: {'center_y': .5}
+            on_release: root.on_swipe_complete()
 
     # Show bag information
     MDCardSwipeFrontBox:
@@ -40,7 +53,6 @@
             id: item
             text: root.name
             secondary_text: root.description
-            on_release: root.items()
 
             ImageLeftWidget:
                 source: join(app.user_data_dir, str(root.id) + '.png')
@@ -60,30 +72,28 @@
     # Show incrementing widget
     BoxLayout:
         orientation: 'vertical'
+        spacing: 10
         size_hint_x: 0.2
 
         # Increment button
-        AnchorLayout:
-            MDIconButton:
-                icon: 'chevron-up'
-                pos_hint: {'center_x': 0.5}
-                on_release: app.increment(root.name, 1)
+        ArrowButton:
+            bag_name: root.name
+            icon: 'chevron-up'
+            increment: 1
 
         # Show current amount
-        TextInput:
+        MDTextFieldRect:
             id: amount_field
             input_type: 'number'
-            cursor_color: 0.15, 0.6, 0.95, 1
+            cursor_color: app.theme_cls.primary_color
             text: str(root.amount)
-            width: self.height
             on_focus: root.update(args[1])
 
         # Decrement button
-        AnchorLayout:
-            MDIconButton:
-                icon: 'chevron-down'
-                pos_hint: {'center_x': 0.5}
-                on_release: app.increment(root.name, -1)
+        ArrowButton:
+            bag_name: root.name
+            icon: 'chevron-down'
+            increment: -1
 
 <ScreenManager>:
     BagsScreen:
@@ -112,6 +122,7 @@
             # Layout for available bags
             MDList:
                 id: bag_list
+                spacing: 2
 
     # Button to scan qr code
     MDFloatingActionButton:
@@ -170,8 +181,9 @@
             # Add button
             Button:
                 text: 'Add'
+                theme_text_color: 'Custom'
                 background_normal: ''
-                background_color: 0.15, 0.6, 0.95, 1
+                background_color: app.theme_cls.primary_color
                 size_hint: 0.3, 0.6
                 pos_hint: {'center_y': 0.5}
                 on_release: root.new_item()

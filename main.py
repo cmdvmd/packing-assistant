@@ -4,6 +4,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen, CardTransition, NoTran
 from kivy.uix.image import Image
 from kivy.properties import StringProperty, NumericProperty
 from kivy.uix.behaviors import ButtonBehavior
+from kivymd.uix.behaviors import TouchBehavior
 from kivy.clock import Clock
 from kivy.core.window import Window
 from sqlite3 import connect
@@ -30,7 +31,7 @@ class QRCode(ButtonBehavior, Image):
         notification.notify(message='QR code saved to Gallery', toast=True)
 
 
-class Bag(MDCardSwipe):
+class Bag(TouchBehavior, MDCardSwipe):
     """
     Clickable card showing information about a bag
     """
@@ -39,7 +40,7 @@ class Bag(MDCardSwipe):
     name = StringProperty()
     description = StringProperty()
 
-    def items(self):
+    def on_double_tap(self, touch, *args):
         """
         Switch screen to Items Screen
         """
@@ -53,6 +54,9 @@ class Bag(MDCardSwipe):
         # Switch screen
         app.root.transition = CardTransition(direction='left')
         app.root.current = 'items'
+
+    def on_swipe_complete(self, *args):
+        app.delete(self.id)
 
 
 class Item(MDCard):
@@ -344,19 +348,19 @@ class PackerApp(MDApp):
         )
         ''')
 
-    def delete(self, bag):
+    def delete(self, bag_id):
         """
         Remove bag from database
 
-        :param bag: Bag to be removed
+        :param bag_id: ID of bag to be removed
         """
 
         # Delete from database
-        self.cursor.execute('DELETE FROM bags WHERE id=?', (bag.id,))
+        self.cursor.execute('DELETE FROM bags WHERE id=?', (bag_id,))
         app.connection.commit()
 
         # Delete QR code
-        remove(join(self.user_data_dir, str(bag.id) + '.png'))
+        remove(join(self.user_data_dir, str(bag_id) + '.png'))
 
         # Update bags screen
         self.root.get_screen('bags').add_bags()
