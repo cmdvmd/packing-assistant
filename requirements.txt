@@ -1,0 +1,5 @@
+kivy~=2.0.0
+kivymd~=0.104.2
+plyer~=2.0.0
+qrcode[pil]~=7.1
+zbarcam~=2020.524
