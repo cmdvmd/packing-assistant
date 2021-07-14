@@ -1,5 +1,8 @@
+#: import Window kivy.core.window.Window
+#: import CardTransition kivy.uix.screenmanager.CardTransition
 #: import join os.path.join
 #: import ZBarCam kivy_garden.zbarcam.ZBarCam
+#: import ZBarSymbol pyzbar.pyzbar.ZBarSymbol
 
 <Bar@MDToolbar>:
     elevation: 12
@@ -89,6 +92,8 @@
         name: 'items'
     EditScreen:
         name: 'edit'
+    ScanScreen:
+        name: 'scan'
 
 <BagsScreen>:
     bag_list: bag_list
@@ -113,6 +118,9 @@
         icon: 'camera'
         elevation_normal: 8
         pos_hint: {'right': 0.95, 'top': 0.15}
+        on_release:
+            root.manager.transition = CardTransition(direction='left')
+            root.manager.current = 'scan'
 
 <ItemsScreen>:
     item_field: item_field
@@ -188,7 +196,7 @@
 
         # Toolbar with title and save button
         Bar:
-            title: 'New Bag'
+            title: 'Edit Bag'
 
             # Save button
             MDTextButton:
@@ -223,3 +231,17 @@
                 text: root.bag_description
                 multiline: True
                 size_hint_y: 0.5
+
+<ScanScreen>:
+    # Main layout
+    BoxLayout:
+        orientation: 'vertical'
+
+        # Toolbar with title and back button
+        Bar:
+            id: toolbar
+            title: 'Scan'
+            left_action_items: [['arrow-left', lambda x: root.back()]]
+        ZBarCam:
+            code_types: ZBarSymbol.QRCODE,
+            on_symbols: root.validate(self.symbols)

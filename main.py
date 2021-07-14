@@ -69,7 +69,7 @@ class Item(MDCard):
         Update amount of item in bag
         """
 
-        new_amount = self.amount_field.text
+        new_amount = self.amount_field.text.strip()
 
         # Ensure entered amount is valid
         if not focus and match(r'^-?[0-9]+$', new_amount):
@@ -82,6 +82,49 @@ class Item(MDCard):
         else:
             app.cursor.execute('SELECT amount FROM items WHERE bag_id=? AND name=?', (self.bag_id, self.name,))
             self.amount_field.text = str(app.cursor.fetchone()[0])
+
+
+class ScanScreen(Screen):
+    @staticmethod
+    def back():
+        """
+        Switch screens to Bags Screen
+        """
+
+        app.root.transition = CardTransition(direction='right')
+        app.root.current = 'bags'
+
+    def on_enter(self, *args):
+        """
+        Get a list of all valid ids
+        """
+
+        app.cursor.execute('SELECT id FROM bags')
+        self.bag_ids = list(map(lambda bag_id: str(bag_id[0]), app.cursor.fetchall()))
+
+    def validate(self, symbols):
+        for qr_code in symbols:
+            try:
+                # Ensure QR code is valid
+                data = qr_code.data.decode().split(SEPARATOR)
+                assert data[0] == IDENTIFIER
+                assert data[1] == uniqueid.get_uid()
+                assert data[2] in self.bag_ids
+
+                # If valid, configure items screen
+                app.cursor.execute('SELECT name, description FROM bags WHERE id=?', (int(data[2]),))
+
+                items_screen = app.root.get_screen('items')
+                items_screen.bag_id = int(data[2])
+                items_screen.bag_name, items_screen.bag_description = app.cursor.fetchone()
+
+                # Switch screen
+                app.root.transition = CardTransition(direction='left')
+                app.root.current = 'items'
+
+            except (AssertionError, IndexError) as e:
+                # If invalid, notify user
+                notification.notify(message='Invalid QR code', toast=True)
 
 
 class EditScreen(Screen):
@@ -99,7 +142,7 @@ class EditScreen(Screen):
         """
 
         # Ensure name is not blank
-        if self.name_input.text:
+        if self.name_input.text.strip():
             # Update database
             app.cursor.execute('''
             UPDATE bags SET
@@ -177,7 +220,11 @@ class ItemsScreen(Screen):
 
         # Get all items in bag
         app.cursor.execute('SELECT name, amount FROM items WHERE bag_id=?', (self.bag_id,))
-        for item in app.cursor.fetchall():
+        items = app.cursor.fetchall()
+        items.sort(key=lambda found: found[0].lower())
+
+        # Add items to screen
+        for item in items:
             self.item_list.add_widget(Item(
                 bag_id=self.bag_id,
                 name=item[0],
