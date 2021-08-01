@@ -6,7 +6,6 @@ from kivy.properties import StringProperty, NumericProperty
 from kivy.uix.behaviors import ButtonBehavior
 from kivymd.uix.behaviors import TouchBehavior
 from kivy.clock import Clock
-from kivy.core.window import Window
 from sqlite3 import connect
 from os.path import join
 from os import remove
@@ -379,7 +378,7 @@ class PackerApp(MDApp):
         Configure application
         """
 
-        self.icon = 'icon.png'
+        # self.icon = 'icon.png'
         self.title = 'Packer'
 
         return ScreenManager()
@@ -405,12 +404,8 @@ def get_data(row_id):
 
 
 # Define constants
-
 IDENTIFIER = 'packer'
 SEPARATOR = ':'
-
-# Resize window
-Window.size = 275, 475
 
 # Run app
 app = PackerApp()

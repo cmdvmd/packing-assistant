@@ -45,9 +45,10 @@ $ python main.py
 
 ### Android
 
-To build Packer for Android, use [buildozer](https://buildozer.readthedocs.io/en/latest/installation.html).
+To build Packer for Android, use [Buildozer](https://buildozer.readthedocs.io/en/latest/installation.html).
 A [`buildozer.spec`](buildozer.spec) file has been included, which can be edited as needed
 
 ```shell
+$ pip install buildozer
 $ buildozer -v android debug
 ```
