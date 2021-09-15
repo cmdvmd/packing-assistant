@@ -1,10 +1,11 @@
 from kivymd.app import MDApp
 from kivymd.uix.card import MDCardSwipe, MDCard
+from kivymd.uix.behaviors import TouchBehavior
+from kivy.core.window import Window
 from kivy.uix.screenmanager import ScreenManager, Screen, CardTransition, NoTransition
 from kivy.uix.image import Image
 from kivy.properties import StringProperty, NumericProperty
 from kivy.uix.behaviors import ButtonBehavior
-from kivymd.uix.behaviors import TouchBehavior
 from kivy.clock import Clock
 from sqlite3 import connect
 from os.path import join
@@ -77,7 +78,8 @@ class Item(MDCard):
         # Ensure entered amount is valid
         if not focus and match(r'^-?[0-9]+$', new_amount):
             # Update database
-            app.cursor.execute('UPDATE items SET amount=? WHERE bag_id=? AND name=?', (int(new_amount), self.bag_id, self.name,))
+            app.cursor.execute('UPDATE items SET amount=? WHERE bag_id=? AND name=?',
+                               (int(new_amount), self.bag_id, self.name,))
             app.connection.commit()
 
             app.root.get_screen('items').add_items()
@@ -326,6 +328,7 @@ class PackerApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self.icon = 'icon.png'
         self.connection = connect(join(self.user_data_dir, 'packer.db'))
         self.cursor = self.connection.cursor()
 
@@ -354,8 +357,9 @@ class PackerApp(MDApp):
         :param bag_id: ID of bag to be removed
         """
 
-        # Delete from database
+        # Delete bag and items from database
         self.cursor.execute('DELETE FROM bags WHERE id=?', (bag_id,))
+        self.cursor.execute('DELETE FROM items WHERE bag_id=?', (bag_id,))
         app.connection.commit()
 
         # Delete QR code
@@ -367,7 +371,8 @@ class PackerApp(MDApp):
     def increment(self, item, amount):
         items_screen = self.root.get_screen('items')
 
-        app.cursor.execute('UPDATE items SET amount = amount + ? WHERE bag_id=? AND name=?', (amount, items_screen.bag_id, item,))
+        app.cursor.execute('UPDATE items SET amount = amount + ? WHERE bag_id=? AND name=?',
+                           (amount, items_screen.bag_id, item,))
         app.connection.commit()
 
         # Update items screen
@@ -407,6 +412,11 @@ def get_data(row_id):
 IDENTIFIER = 'packer'
 SEPARATOR = ':'
 
+# Configure window
+Window.softinput_mode = 'below_target'
+
+
 # Run app
-app = PackerApp()
-app.run()
+if __name__ == '__main__':
+    app = PackerApp()
+    app.run()

@@ -2,6 +2,8 @@
 
 # Packer
 
+[Video Demo](https://youtu.be/uLSk44_PynM)
+
 A simple app to keep track of items packed in multiple bags written with [Python](https://python.org),
 [Kivy](https://kivy.org), and [SQLite](https://sqlite.org). Users can include details of their bags,
 such as a name and description which can be edited at anytime. After creating a bag, users can add items
@@ -52,3 +54,4 @@ A [`buildozer.spec`](buildozer.spec) file has been included, which can be edited
 $ pip install buildozer
 $ buildozer -v android debug
 ```
+_Note: Buildozer is not available for Windows. To compile for Android on Windows, use the Windows Subsystem for Linux (WSL)_
